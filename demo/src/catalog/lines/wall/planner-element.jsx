@@ -38,6 +38,19 @@ const textures = {
       normalScaleY: 0.4
     }
   },
+  hexa: {
+    name:'Hexa',
+    uri: require('./textures/hexa.jpg'),
+    lengthRepeatScale: 0.01,
+    heightRepeatScale: 0.01,
+    normal: {
+      uri: require('./textures/painted-normal.jpg'),
+      lengthRepeatScale: 0.01,
+      heightRepeatScale: 0.01,
+      normalScaleX: 0.4,
+      normalScaleY: 0.4
+    }
+  },
 };
 
 export default ElementsFactories.WallFactory('wall', info, textures);

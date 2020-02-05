@@ -11,6 +11,7 @@ import {
 import ThreeBSP from '../../utils/threeCSG.es6';
 import {verticesDistance} from '../../utils/geometry';
 import * as SharedStyle from '../../shared-style';
+import { object } from 'prop-types';
 
 const halfPI = Math.PI / 2;
 
@@ -30,6 +31,7 @@ const applyTexture = (material, texture, length, height) => {
     material.map.wrapS = RepeatWrapping;
     material.map.wrapT = RepeatWrapping;
     material.map.repeat.set(length * texture.lengthRepeatScale, height * texture.heightRepeatScale);
+    // console.log("Texture is here !");
 
     if (texture.normal) {
       material.normalMap = loader.load(texture.normal.uri);
@@ -43,6 +45,7 @@ const applyTexture = (material, texture, length, height) => {
 
 export function buildWall(element, layer, scene, textures)
 {
+  // console.log(element);
   // Get the two vertices of the wall
   let vertex0 = layer.vertices.get(element.vertices.get(0));
   let vertex1 = layer.vertices.get(element.vertices.get(1));
@@ -107,31 +110,64 @@ export function buildWall(element, layer, scene, textures)
 
   soul.name = 'soul';
 
-  let frontMaterial = new MeshBasicMaterial();
-  let backMaterial = new MeshBasicMaterial();
-
-  applyTexture(frontMaterial, textures[element.properties.get('textureB')], distance, height);
-  applyTexture(backMaterial, textures[element.properties.get('textureA')], distance, height);
-
   let scaleFactor = faceThickness / thickness;
   let texturedFaceDistance = halfThickness + faceDistance;
 
-  let frontFace = soul.clone();
-  frontFace.material = frontMaterial;
-  frontFace.scale.set( 1, 1, scaleFactor );
-  frontFace.position.x += texturedFaceDistance * Math.cos(alpha - ( halfPI ) );
-  frontFace.position.z -= texturedFaceDistance * Math.sin(alpha - ( halfPI ) );
-  frontFace.name = 'frontFace';
 
-  let backFace = soul.clone();
-  backFace.material = backMaterial;
-  backFace.scale.set( 1, 1, scaleFactor );
-  backFace.position.x += texturedFaceDistance * Math.cos(alpha + ( halfPI ) );
-  backFace.position.z -= texturedFaceDistance * Math.sin(alpha + ( halfPI ) );
-  backFace.name = 'backFace';
+  let myFaces = [];
+  let myMaterials = [];
+
+  let myFactors = [];
+  let myTextures = [];
+
+  let totalHeight = 0;
+
+  let keys = Array.from( element.properties.keys() );
+  for(var j = 2; j < element.properties.size; j = j +2){
+    myTextures.push(textures[element.properties.get(keys[j])]);
+    myFactors.push(element.properties.getIn([keys[j+1], 'length']) / height);
+  }
+
+  for(var i = 0; i < myFactors.length; i++){
+    let myFrontMaterial = new MeshBasicMaterial();
+    let myBackMaterial = new MeshBasicMaterial();
+    myMaterials.push(myFrontMaterial);
+    myMaterials.push(myBackMaterial);
+    applyTexture(myFrontMaterial, myTextures[i], distance, myFactors[i]*height);
+    applyTexture(myBackMaterial, myTextures[i], distance, myFactors[i]*height);
+
+    let myFrontFace = soul.clone();
+    myFrontFace.material = myFrontMaterial;
+    myFrontFace.scale.set( 1, myFactors[i], scaleFactor );
+    myFrontFace.position.x += texturedFaceDistance * Math.cos(alpha - ( halfPI ) );
+    myFrontFace.position.z -= texturedFaceDistance * Math.sin(alpha - ( halfPI ) );
+    myFrontFace.position.y -= height * ( (1-myFactors[i]) / 2 );
+    myFrontFace.position.y += totalHeight;
+    myFrontFace.name = `myFrontFace${i}`;
+    myFaces.push(myFrontFace);
+
+    let myBackFace = soul.clone();
+    myBackFace.material = myBackMaterial;
+    myBackFace.scale.set( 1, myFactors[i], scaleFactor );
+    myBackFace.position.x += texturedFaceDistance * Math.cos(alpha + ( halfPI ) );
+    myBackFace.position.z -= texturedFaceDistance * Math.sin(alpha + ( halfPI ) );
+    myBackFace.position.y -= height * ( (1-myFactors[i]) / 2 );
+    myBackFace.position.y += totalHeight;
+    myBackFace.name = `myBackFace${i}`;
+    myFaces.push(myBackFace);
+
+    totalHeight += myBackFace.scale.y * height;
+
+  }
+
+
+
 
   let merged = new Group();
-  merged.add( soul, frontFace, backFace );
+  merged.add(soul);
+  myFaces.forEach(face => {
+    merged.add(face);
+  });
 
   return Promise.resolve( merged );
 }

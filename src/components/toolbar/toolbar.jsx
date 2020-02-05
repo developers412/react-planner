@@ -77,8 +77,12 @@ export default class Toolbar extends Component {
     } = this;
 
     let mode = state.get('mode');
+    console.log(mode);
     let alterate = state.get('alterate');
     let alterateColor = alterate ? SharedStyle.MATERIAL_COLORS[500].orange : '';
+
+    //This line is for starting the app with 3D view
+    // viewer3DActions.selectTool3DView()
 
     let sorter = [
       {

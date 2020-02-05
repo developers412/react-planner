@@ -73,23 +73,37 @@ export default function WallFactory(name, info, textures) {
 
     let textureValues = { 'none': 'None' };
 
+
+
+
+    // we can use this loop to make adding textures more dynamic process
+    let textureNames = [];
     for (let textureName in textures) {
       textureValues[textureName] = textures[textureName].name;
+      textureNames.push(textures[textureName].name);
     }
 
-    wallElement.properties.textureA = {
-      label: translator.t('texture') + ' A',
-      type: 'enum',
-      defaultValue: textureValues.bricks ? 'bricks' : 'none',
-      values: textureValues
-    };
+    let i = 0;
+    for (let textureName in textures) {
+      wallElement.properties[textureNames[i]] = {
+        label: translator.t(`texture ${i+1}`),
+        type: 'enum',
+        defaultValue: textureValues.bricks ? 'bricks' : 'none',
+        values: textureValues
+      };
 
-    wallElement.properties.textureB = {
-      label: translator.t('texture') + ' B',
-      type: 'enum',
-      defaultValue: textureValues.bricks ? 'bricks' : 'none',
-      values: textureValues
-    };
+      wallElement.properties[textureNames[i] + 'ratio'] = {
+        label: translator.t(`Texture ${i+1} Ratio`),
+        type: 'length-measure',
+        defaultValue: {
+          length: 100
+        },
+        min: 0,
+        max: 300
+      };
+
+      i++;
+    }
 
   }
 
